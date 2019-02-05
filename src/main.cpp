@@ -27,19 +27,19 @@
 #define LED_HEARTBEAT 1
 
 #if LED_HEARTBEAT
-  #define HB_LED D2
-  #define HB_LED_TIME 50 // in milliseconds
+  #define HB_LED       D6
+  #define HB_LED_TIME  50 // in milliseconds
 #endif
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // Declaration for SSD1306 display connected using software SPI (default case):
-#define OLED_MOSI   D1
+#define OLED_MOSI  D1
 #define OLED_CLK   D0
-#define OLED_DC    D6
-#define OLED_CS    D7
-#define OLED_RESET D5
+#define OLED_DC    D3
+#define OLED_CS    D4
+#define OLED_RESET D2
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
   OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
@@ -75,6 +75,7 @@ static const unsigned char PROGMEM logo_bmp[] =
   B00000000, B00110000 };
 
 
+int ctr;
 
 
 void testdrawline() {
@@ -268,7 +269,7 @@ void testdrawchar(void) {
 void testdrawstyles(void) {
   display.clearDisplay();
 
-  display.setTextSize(1);             // Normal 1:1 pixel scale
+  display.setTextSize(2);             // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
   display.setCursor(0,0);             // Start at top-left corner
   display.println(F("Hello, world!"));
@@ -276,12 +277,12 @@ void testdrawstyles(void) {
   display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
   display.println(3.141592);
 
-  display.setTextSize(2);             // Draw 2X-scale text
+  display.setTextSize(3);             // Draw 2X-scale text
   display.setTextColor(WHITE);
   display.print(F("0x")); display.println(0xDEADBEEF, HEX);
 
   display.display();
-  delay(2000);
+  delay(3000);
 }
 
 void testscrolltext(void) {
@@ -296,7 +297,7 @@ void testscrolltext(void) {
 
   // Scroll in various directions, pausing in-between:
   display.startscrollright(0x00, 0x0F);
-  delay(200);
+  delay(2000);
   display.stopscroll();
   delay(100);
   display.startscrollleft(0x00, 0x0F);
@@ -384,19 +385,20 @@ void setup() {
 
   // Show initial display buffer contents on the screen --
   // the library initializes this with an Adafruit splash screen.
-  display.display();
-  delay(2000); // Pause for 2 seconds
+  // display.display();  // display default logo
+  // delay(2000); // Pause for 2 seconds
 
-  // Clear the buffer
+  // Clear the buffer, so we don't display default splash logo
   display.clearDisplay();
 
   // Draw a single pixel in white
-  display.drawPixel(10, 10, WHITE);
+  // display.drawPixel(10, 10, WHITE);
 
   // Show the display buffer on the screen. You MUST call display() after
   // drawing commands to make them visible on screen!
-  display.display();
-  delay(2000);
+  // display.display();
+  // delay(2000);
+
   // display.display() is NOT necessary after every single drawing command,
   // unless that's what you want...rather, you can batch up a bunch of
   // drawing operations and then update the screen all at once by calling
@@ -451,19 +453,59 @@ void loop() {
     }
   #endif
 
-  testdrawchar();      // Draw characters of the default font
+  // testdrawstyles();    // Draw 'stylized' characters
 
-  testdrawstyles();    // Draw 'stylized' characters
+  display.clearDisplay();
 
-  testscrolltext();    // Draw scrolling text
+  display.setTextSize(2);             // 2x scale  // Normal 1:1 pixel scale
+  display.setTextColor(WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  display.println(F("Owel"));
 
-  // testdrawbitmap();    // Draw a small bitmap image
+  // display.setTextSize(1);
+  // display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
+  // display.println("                ");
 
-  testanimate(logo_bmp, LOGO_WIDTH, LOGO_HEIGHT); // Animate bitmaps
+  ctr++;
+  if (ctr > 73){
+    ctr=0;
+  };
+  display.setTextSize(4);             // Draw 3X-scale text
+  display.setTextColor(WHITE);
+  display.setCursor(0,26);             // Start at top-left corner
+  display.print(ctr); 
+
+  // print dB
+  display.setTextSize(2);             
+  display.print("dB"); 
+
+
+  int line1 = 0;
+  int line2 = line1 + 20 + 1;
+  int line3 = line2 + 20 + 1;
+
+  // print other settings
+  display.setTextSize(2);         
+  // display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
+  display.setCursor(90, line1);           
+  display.print("48V"); 
+  
+  display.setCursor(90, line2);           
+  display.print("PAD"); 
+
+  display.setCursor(90, line3);   
+  display.print("REV"); 
+  display.setTextColor(WHITE); // Draw 'inverse' text
+
+
+  // refresh display
+  display.display();
+  delay(20);
+
 
   // Invert and restore display, pausing in-between
-  display.invertDisplay(true);
-  delay(1000);
-  display.invertDisplay(false);
-  delay(1000);
+  // display.invertDisplay(true);
+  // delay(100);
+  // display.invertDisplay(false);
+  // delay(100);
 }
