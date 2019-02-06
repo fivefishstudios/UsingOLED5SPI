@@ -24,12 +24,18 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define LED_HEARTBEAT 1
+#define LED_HEARTBEAT 0
 
 #if LED_HEARTBEAT
   #define HB_LED       D6
   #define HB_LED_TIME  50 // in milliseconds
 #endif
+
+#define SWITCH_YLWLED  D5
+#define SWITCH_REDLED  D6
+#define SWITCH_DATA    D7
+
+int switch_toggle;
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -377,6 +383,13 @@ void setup() {
     digitalWrite(HB_LED, LOW);
   #endif
 
+  pinMode(SWITCH_DATA, INPUT);  
+  pinMode(SWITCH_REDLED, OUTPUT);  
+  pinMode(SWITCH_YLWLED, OUTPUT);  
+
+  digitalWrite(SWITCH_REDLED, LOW);
+  digitalWrite(SWITCH_YLWLED, LOW);
+
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -453,6 +466,23 @@ void loop() {
     }
   #endif
 
+  // switch polling method, so we need some delay()
+  if (!digitalRead(SWITCH_DATA)){
+    switch_toggle = !switch_toggle;
+    delay(200); // a little delay for the push button switch, 200ms
+  };
+
+  // toggle LEDs for the push button switch
+  if (switch_toggle){
+    digitalWrite(SWITCH_YLWLED, HIGH);
+    digitalWrite(SWITCH_REDLED, LOW);
+  } else {
+    digitalWrite(SWITCH_YLWLED, LOW);
+    digitalWrite(SWITCH_REDLED, HIGH);
+  }
+
+
+
   // testdrawstyles();    // Draw 'stylized' characters
 
   display.clearDisplay();
@@ -460,7 +490,7 @@ void loop() {
   display.setTextSize(2);             // 2x scale  // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
   display.setCursor(0,0);             // Start at top-left corner
-  display.println(F("Owel"));
+  display.println(F("CH A"));
 
   // display.setTextSize(1);
   // display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
@@ -484,20 +514,24 @@ void loop() {
   int line2 = line1 + 20 + 1;
   int line3 = line2 + 20 + 1;
 
-  // print other settings
+  // print other settings, set font size
   display.setTextSize(2);         
-  // display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
+
   display.setCursor(90, line1);           
   display.print("48V"); 
   
   display.setCursor(90, line2);           
   display.print("PAD"); 
 
-  display.setCursor(90, line3);   
-  display.print("REV"); 
-  display.setTextColor(WHITE); // Draw 'inverse' text
+  if (switch_toggle){
+    display.setCursor(90, line3);   
+    display.print("REV"); 
+  } else {
+    display.setCursor(90, line3);   
+    display.print("   "); 
+  }
 
-
+  
   // refresh display
   display.display();
   delay(20);
