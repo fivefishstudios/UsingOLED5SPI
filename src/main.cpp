@@ -31,11 +31,20 @@
   #define HB_LED_TIME  50 // in milliseconds
 #endif
 
-#define SWITCH_YLWLED  D5
-#define SWITCH_REDLED  D6
-#define SWITCH_DATA    D7
+// #define SWITCH_YLWLED  D5
+// #define SWITCH_REDLED  D6
+// #define SWITCH_DATA    D7
+
+#define SWITCH_48V     D5
+#define SWITCH_PAD     D6
+#define SWITCH_REV     D7
 
 int switch_toggle;
+int state_48V;
+int state_PAD;
+int state_REV;
+
+
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -383,12 +392,21 @@ void setup() {
     digitalWrite(HB_LED, LOW);
   #endif
 
-  pinMode(SWITCH_DATA, INPUT);  
-  pinMode(SWITCH_REDLED, OUTPUT);  
-  pinMode(SWITCH_YLWLED, OUTPUT);  
+  // encoder LEDs and switch
+  // pinMode(SWITCH_DATA, INPUT);  
+  // pinMode(SWITCH_REDLED, OUTPUT);  
+  // pinMode(SWITCH_YLWLED, OUTPUT);  
+  // digitalWrite(SWITCH_REDLED, LOW);
+  // digitalWrite(SWITCH_YLWLED, LOW);
 
-  digitalWrite(SWITCH_REDLED, LOW);
-  digitalWrite(SWITCH_YLWLED, LOW);
+
+  
+  // PB switches 
+  pinMode(SWITCH_48V, INPUT);  
+  pinMode(SWITCH_PAD, INPUT);  
+  pinMode(SWITCH_REV, INPUT);  
+
+
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC)) {
@@ -455,7 +473,7 @@ void setup() {
 void loop() {
 
 
-    // blink our blue heartbeat LED
+  // blink our blue heartbeat LED
   #if LED_HEARTBEAT
     static uint32_t timeLast = 0;
 
@@ -466,24 +484,39 @@ void loop() {
     }
   #endif
 
-  // switch polling method, so we need some delay()
-  if (!digitalRead(SWITCH_DATA)){
-    switch_toggle = !switch_toggle;
+  // poll switches
+  if (digitalRead(SWITCH_48V)){
+    state_48V = !state_48V;
     delay(200); // a little delay for the push button switch, 200ms
   };
 
+  if (digitalRead(SWITCH_PAD)){
+    state_PAD = !state_PAD;
+    delay(200); // a little delay for the push button switch, 200ms
+  };
+
+  if (digitalRead(SWITCH_REV)){
+    state_REV = !state_REV;
+    delay(200); // a little delay for the push button switch, 200ms
+  };
+
+
+  // switch polling method, so we need some delay()
+  // if (!digitalRead(SWITCH_DATA)){
+  //   switch_toggle = !switch_toggle;
+  //   delay(200); // a little delay for the push button switch, 200ms
+  // };
+
   // toggle LEDs for the push button switch
-  if (switch_toggle){
-    digitalWrite(SWITCH_YLWLED, HIGH);
-    digitalWrite(SWITCH_REDLED, LOW);
-  } else {
-    digitalWrite(SWITCH_YLWLED, LOW);
-    digitalWrite(SWITCH_REDLED, HIGH);
-  }
+  // if (switch_toggle){
+  //   digitalWrite(SWITCH_YLWLED, HIGH);
+  //   digitalWrite(SWITCH_REDLED, LOW);
+  // } else {
+  //   digitalWrite(SWITCH_YLWLED, LOW);
+  //   digitalWrite(SWITCH_REDLED, HIGH);
+  // }
 
 
-
-  // testdrawstyles();    // Draw 'stylized' characters
 
   display.clearDisplay();
 
@@ -491,10 +524,6 @@ void loop() {
   display.setTextColor(WHITE);        // Draw white text
   display.setCursor(0,0);             // Start at top-left corner
   display.println(F("CH A"));
-
-  // display.setTextSize(1);
-  // display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
-  // display.println("                ");
 
   ctr++;
   if (ctr > 73){
@@ -509,7 +538,6 @@ void loop() {
   display.setTextSize(2);             
   display.print("dB"); 
 
-
   int line1 = 0;
   int line2 = line1 + 20 + 1;
   int line3 = line2 + 20 + 1;
@@ -517,13 +545,23 @@ void loop() {
   // print other settings, set font size
   display.setTextSize(2);         
 
-  display.setCursor(90, line1);           
-  display.print("48V"); 
-  
-  display.setCursor(90, line2);           
-  display.print("PAD"); 
+  if (state_48V){
+    display.setCursor(90, line1);           
+    display.print("48V"); 
+  } else {
+    display.setCursor(90, line1);   
+    display.print("   "); 
+  }
 
-  if (switch_toggle){
+  if (state_PAD){
+    display.setCursor(90, line2);           
+    display.print("PAD"); 
+  } else {
+    display.setCursor(90, line2);   
+    display.print("   "); 
+  }
+
+  if (state_REV){
     display.setCursor(90, line3);   
     display.print("REV"); 
   } else {
@@ -534,7 +572,7 @@ void loop() {
   
   // refresh display
   display.display();
-  delay(20);
+  delay(10);
 
 
   // Invert and restore display, pausing in-between
